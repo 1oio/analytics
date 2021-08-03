@@ -6,7 +6,12 @@
 
   var scriptEl = document.currentScript;
   var endpoint = scriptEl.getAttribute('data-api') || new URL(scriptEl.src).origin + '/api/event'
-  var plausible_ignore = window.localStorage.plausible_ignore;
+  var plausible_ignore = "false"
+  try{
+    plausible_ignore = window.localStorage.plausible_ignore;
+  } catch (e) {
+
+  }
   {{#if exclusions}}
   var excludedPaths = scriptEl && scriptEl.getAttribute('data-exclude').split(',');
   {{/if}}
