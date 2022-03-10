@@ -70,6 +70,7 @@ defmodule PlausibleWeb.Api.ExternalController do
 
   defp create_event(conn, params) do
     params = %{
+      "timestamp" => params["t"] || params["timestamp"],
       "name" => params["n"] || params["name"],
       "url" => params["u"] || params["url"],
       "referrer" => params["r"] || params["referrer"],
@@ -96,7 +97,7 @@ defmodule PlausibleWeb.Api.ExternalController do
       salts = Plausible.Session.Salts.fetch()
 
       event_attrs = %{
-        timestamp: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+        timestamp: timestamp(params["timestamp"]),
         name: params["name"],
         hostname: strip_www(host),
         pathname: get_pathname(uri, params["hash_mode"]),
@@ -522,6 +523,14 @@ defmodule PlausibleWeb.Api.ExternalController do
         {:ok, params}
     end
   end
+
+  defp timestamp(nil), do: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+  defp timestamp(timestmap) do
+    {:ok, t} = NaiveDateTime.from_iso8601(timestmap)
+    NaiveDateTime.truncate(t, :second)
+  end
+
 
   defp strip_www(nil), do: nil
 

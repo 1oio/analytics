@@ -763,6 +763,22 @@ defmodule PlausibleWeb.Api.ExternalControllerTest do
       assert pageview.pathname == "/#page-a"
     end
 
+    test "allows to set a timestamp", %{conn: conn} do
+      params = %{
+        n: "pageview",
+        u: "http://www.example.com/#page-a",
+        d: "external-controller-test-24.com",
+        t: "2021-09-02T10:14:00"
+      }
+
+      conn
+      |> post("/api/event", params)
+
+      pageview = get_event("external-controller-test-24.com")
+
+      assert pageview.timestamp == ~N[2021-09-02T10:14:00]
+    end
+
     test "decodes URL pathname, fragment and search", %{conn: conn} do
       params = %{
         n: "pageview",
