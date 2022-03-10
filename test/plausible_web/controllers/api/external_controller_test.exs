@@ -870,6 +870,46 @@ defmodule PlausibleWeb.Api.ExternalControllerTest do
     end
   end
 
+  describe "GET /api/pxl.gif" do
+    test "working tracking pixel", %{conn: conn} do
+      query_string =
+        [
+          "n=pageview",
+          "u=#{URI.encode("http://gigride.live/")}",
+          "d=external-controller-test-pxl.com",
+          "r=#{URI.encode("http://m.facebook.com/")}",
+          "m[meta_test]=meta_value"
+        ]
+        |> Enum.join("&")
+
+      conn =
+        conn
+        |> put_req_header("user-agent", @user_agent)
+        |> get("/api/pxl.gif?#{query_string}")
+
+      event = get_event("external-controller-test-pxl.com")
+
+      assert response(conn, 200)
+      assert Map.get(event, :"meta.key") == ["meta_test"]
+      assert Map.get(event, :"meta.value") == ["meta_value"]
+      assert event.hostname == "gigride.live"
+      assert event.domain == "external-controller-test-pxl.com"
+      assert event.pathname == "/"
+    end
+
+    test "invalid tracking pixel", %{conn: conn} do
+      params = %{}
+
+      conn =
+        conn
+        |> put_req_header("user-agent", @user_agent)
+        |> get("/api/pxl.gif", params)
+
+      assert response(conn, 400)
+      assert get_resp_header(conn, "errors") == ["{\"domain\":[\"can't be blank\"]}"]
+    end
+  end
+
   describe "user_id generation" do
     test "with same IP address and user agent, the same user ID is generated", %{conn: conn} do
       params = %{

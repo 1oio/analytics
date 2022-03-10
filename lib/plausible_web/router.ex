@@ -98,6 +98,7 @@ defmodule PlausibleWeb.Router do
     pipe_through :api
 
     post "/event", Api.ExternalController, :event
+    get "/pxl.gif", Api.ExternalController, :pixel
     get "/error", Api.ExternalController, :error
     get "/health", Api.ExternalController, :health
 

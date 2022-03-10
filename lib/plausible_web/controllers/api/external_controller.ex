@@ -2,6 +2,9 @@ defmodule PlausibleWeb.Api.ExternalController do
   use PlausibleWeb, :controller
   require Logger
 
+  @gif <<71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0, 0, 0, 0, 255, 255, 255, 33, 249, 4, 1, 0,
+         0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 1, 68, 0, 59>>
+
   def event(conn, _params) do
     with {:ok, params} <- parse_body(conn),
          _ <- Sentry.Context.set_extra_context(%{request: params}),
@@ -15,6 +18,19 @@ defmodule PlausibleWeb.Api.ExternalController do
 
       {:error, errors} ->
         conn |> put_status(400) |> json(%{errors: errors})
+    end
+  end
+
+  def pixel(conn, params) do
+    with _ <- Sentry.Context.set_extra_context(%{request: params}),
+         :ok <- create_event(conn, params) do
+      conn |> put_resp_content_type("image/gif") |> send_resp(200, @gif)
+    else
+      {:error, errors} ->
+        conn
+        |> put_resp_header("errors", Jason.encode!(errors))
+        |> put_resp_content_type("image/gif")
+        |> send_resp(400, @gif)
     end
   end
 
@@ -530,7 +546,6 @@ defmodule PlausibleWeb.Api.ExternalController do
     {:ok, t} = NaiveDateTime.from_iso8601(timestmap)
     NaiveDateTime.truncate(t, :second)
   end
-
 
   defp strip_www(nil), do: nil
 
