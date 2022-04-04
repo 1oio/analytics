@@ -34,6 +34,9 @@ defmodule Plausible.ClickhouseEvent do
     field :"meta.key", {:array, :string}, default: []
     field :"meta.value", {:array, :string}, default: []
     field :transferred_from, :string, default: ""
+
+    field :io_exps, {:array, :string}, default: []
+    field :io_mods, {:array, :string}, default: []
   end
 
   def new(attrs) do
@@ -64,7 +67,10 @@ defmodule Plausible.ClickhouseEvent do
         :city_geoname_id,
         :screen_size,
         :"meta.key",
-        :"meta.value"
+        :"meta.value",
+        :transferred_from,
+        :io_exps,
+        :io_mods
       ],
       empty_values: [nil, ""]
     )

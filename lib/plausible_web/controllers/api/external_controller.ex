@@ -93,7 +93,8 @@ defmodule PlausibleWeb.Api.ExternalController do
       "domain" => params["d"] || params["domain"],
       "screen_width" => params["w"] || params["screen_width"],
       "hash_mode" => params["h"] || params["hashMode"],
-      "meta" => parse_meta(params)
+      "meta" => parse_meta(params),
+      "ext" => parse_extra_fields(params)
     }
 
     ua = parse_user_agent(conn)
@@ -135,7 +136,9 @@ defmodule PlausibleWeb.Api.ExternalController do
         browser_version: ua && browser_version(ua),
         screen_size: calculate_screen_size(params["screen_width"]),
         "meta.key": Map.keys(params["meta"]),
-        "meta.value": Map.values(params["meta"]) |> Enum.map(&Kernel.to_string/1)
+        "meta.value": Map.values(params["meta"]) |> Enum.map(&Kernel.to_string/1),
+        io_exps: get_in(params, ["ext", "exps"]) || [],
+        io_mods: get_in(params, ["ext", "mods"]) || []
       }
 
       Enum.reduce_while(get_domains(params, uri), @no_domain_error, fn domain, _res ->
@@ -186,6 +189,13 @@ defmodule PlausibleWeb.Api.ExternalController do
   defp is_spammer?(referrer_str) do
     uri = URI.parse(referrer_str)
     ReferrerBlocklist.is_spammer?(strip_www(uri.host))
+  end
+
+  defp parse_extra_fields(params) do
+    raw_meta = params["x"] || params["ext"] || %{}
+
+    {:ok, parsed_json} = decode_raw_props(raw_meta)
+    parsed_json
   end
 
   defp parse_meta(params) do

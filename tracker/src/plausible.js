@@ -68,6 +68,9 @@
     if (options && options.props) {
       payload.p = JSON.stringify(options.props)
     }
+    if (options && options.ext) {
+      payload.x = JSON.stringify(options.ext)
+    }
     {{#if hash}}
     payload.h = 1
     {{/if}}
